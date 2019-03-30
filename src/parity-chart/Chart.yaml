@@ -1,0 +1,6 @@
+name: poanode
+description: A proof of Authority node inside the K8S
+version: 0.0.1
+keywords:
+  - blockchain
+  - poa

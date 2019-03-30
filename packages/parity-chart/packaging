@@ -1,0 +1,3 @@
+set -ex
+
+cp -r parity-chart $BOSH_INSTALL_TARGET

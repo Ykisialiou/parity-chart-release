@@ -1,0 +1,44 @@
+{{- range .Values.nodes }}
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: bootstrap-{{ .branch }}
+data:
+  script: |
+    #!/bin/ash
+    
+    git -c http.sslVerify=false clone https://github.com/poanetwork/poa-chain-spec.git /tmp/poa-chain-spec
+    cd /tmp/poa-chain-spec
+    git checkout {{ .branch }}
+    cd /home/parity
+    cp /tmp/poa-chain-spec/* poa-chain-spec/ -R
+    echo "Chain spec repo received. Setting up config..."
+    $(cat >| /home/parity/poa-chain-spec/node.toml <<-EOF
+    [parity]
+    chain = "/home/parity/poa-chain-spec/spec.json"
+    base_path = "/home/parity/parity_data"
+    
+    [network]
+    reserved_peers="/home/parity/poa-chain-spec/bootnodes.txt"
+    nat="extip:${{ $.Values.appname | upper }}_UDP_{{ .branch | upper }}_SERVICE_HOST"
+    port = ${{ $.Values.appname | upper }}_UDP_{{ .branch | upper }}_SERVICE_PORT_P2P
+    max_peers = {{ $.Values.parity.maxpeers }}
+    snapshot_peers = {{ $.Values.parity.snappeers }}
+    
+    [rpc]
+    port = ${{ $.Values.appname | upper }}_TCP_{{ .branch | upper }}_SERVICE_PORT_RPC
+    apis = ["web3", "eth", "parity", "parity_set", "net", "traces", "rpc"]
+    processing_threads = 4
+    cors = ["all"]
+    
+    [ui]
+    disable = true
+    
+    [misc]
+    log_file = "/dev/stdout"
+    EOF
+    )
+    echo "Done! Bootstrap finished."
+    chown 1000:1000 /home/parity -R
+{{- end }}

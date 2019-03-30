@@ -1,0 +1,37 @@
+appname: poanode
+
+nodes:
+  - branch: core
+    count: 2
+    rpcport: 8545
+    p2pport: 30303
+    staticdata: 150Gi
+    chainid: 99
+    testnet: true
+  - branch: sokol
+    count: 1
+    rpcport: 10000
+    p2pport: 20202
+    staticdata: 50Gi
+    chainid: 77
+    testnet: false
+  - branch: dai
+    count: 2
+    rpcport: 15000
+    p2pport: 20000
+    staticdata: 30Gi
+    testnet: false
+    chainid: 100
+parity:
+  org: parity
+  repo: parity
+  tag: v2.3.2
+  maxpeers: 100
+  snappeers: 25
+  
+configssize: 50Mi
+  
+gitcontainer: 
+  org: alpine
+  repo: git
+  tag: latest

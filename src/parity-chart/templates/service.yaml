@@ -1,0 +1,41 @@
+{{- range .Values.nodes }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $.Values.appname }}-tcp-{{ .branch }}
+  labels:
+    name: {{ .branch }}      
+    chainId: {{ .chainId }}
+    branch: {{ .branch }}
+    testNet: {{ .testNet }}      
+spec:
+  type: LoadBalancer
+  selector:
+    app: {{ $.Values.appname }}-{{ .branch }}
+  ports:
+  - name: rpc
+    protocol: TCP
+    port: {{ .rpcport }}
+    targetPort: {{ .rpcport }}
+    
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $.Values.appname }}-udp-{{ .branch }}
+  labels:
+    name: {{ .branch }}      
+    chainId: {{ .chainId }}
+    branch: {{ .branch }}
+    testNet: {{ .testNet }}      
+spec:
+  type: LoadBalancer
+  selector:
+    app: {{ $.Values.appname }}-{{ .branch }}
+  ports:
+  - name: p2p
+    protocol: UDP
+    port: {{ .p2pport }}
+    targetPort: {{ .p2pport }}
+{{- end }}

@@ -1,0 +1,11 @@
+#!/bin/bash -e
+
+# Copy chart to shared storage
+
+STORE='/var/vcap/store'
+JOB_PACKAGES='/var/vcap/packages/parity-chart'
+if [ ! -d $STORE/charts ] ; then
+  mkdir -p $STORE/charts/parity-chart 
+fi
+
+cp -r $JOB_PACKAGES/parity-chart/* $STORE/charts/parity-chart/

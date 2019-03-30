@@ -1,0 +1,95 @@
+{{- range .Values.nodes }}
+---
+apiVersion: "apps/v1"
+kind: "StatefulSet"
+metadata:
+  name: "{{ $.Values.appname }}-{{ .branch }}"
+  labels:
+    app: "{{ $.Values.appname }}-{{ .branch }}"
+spec:
+  replicas: {{ .count }}
+  serviceName: "{{ $.Values.appname }}-{{ .branch }}"
+  selector:
+    matchLabels:
+      app: "{{ $.Values.appname }}-{{ .branch }}"
+  template:
+    metadata:
+      labels:
+        app: "{{ $.Values.appname }}-{{ .branch }}"
+    spec:
+      initContainers:
+      - name: bootstrap
+        image: "{{ $.Values.gitcontainer.org }}/{{ $.Values.gitcontainer.repo }}:{{ $.Values.gitcontainer.tag }}"
+        command:
+        - /usr/local/bin/bootstrap.sh
+        volumeMounts:
+        - name: configs
+          mountPath: "/home/parity/poa-chain-spec"
+        - name: bootstrap-{{ .branch }}
+          mountPath: "/usr/local/bin"
+        - name: staticdata
+          mountPath: "/home/parity/parity_data"
+        securityContext:
+          runAsUser: 0
+      containers:
+      - name: "{{ $.Values.appname }}-{{ .branch }}"
+        image: "{{ $.Values.parity.org }}/{{ $.Values.parity.repo }}:{{ $.Values.parity.tag }}"
+        args:
+        - --base-path
+        - /home/parity/parity_data
+        - --config
+        - /home/parity/poa-chain-spec/node.toml
+        - --jsonrpc-apis
+        - all
+        - --jsonrpc-hosts
+        - all
+        - --ui-hosts
+        - all
+        - --jsonrpc-interface
+        - all
+        - --ui-interface 
+        - all
+        - --ws-interface
+        - all
+        - --ui-no-validation
+        volumeMounts:
+        - name: staticdata
+          mountPath: "/home/parity/parity_data"
+        - name: configs
+          mountPath: "/home/parity/poa-chain-spec"
+        securityContext:
+          runAsUser: 1000
+      volumes:
+      - name: staticdata
+        persistentVolumeClaim:
+          claimName: staticdata
+      - name: configs
+        persistentVolumeClaim:
+          claimName: configs
+      - name: bootstrap-{{ .branch }}
+        configMap:
+          name: bootstrap-{{ .branch }}
+          defaultMode: 0744
+          items:
+          - key: script
+            path: bootstrap.sh
+  volumeClaimTemplates:
+  - metadata:
+      name: staticdata
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: {{ .staticdata }}
+  - metadata:
+      name: configs
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: {{ $.Values.configssize }}
+{{- end }}
